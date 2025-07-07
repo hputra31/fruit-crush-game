@@ -87,6 +87,7 @@
     grid-template-rows: repeat(8, 1fr);
     gap: 8px;
     margin-bottom: 24px;
+    position: relative; /* For falling animation */
   }
   .cell {
     background: #2a3152;
@@ -98,9 +99,10 @@
     font-size: 32px;
     cursor: pointer;
     user-select: none;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    will-change: transform;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
+    will-change: transform, opacity;
     position: relative;
+    z-index: 1;
   }
   .cell[data-color="0"] { color: #ff4b5c; }
   .cell[data-color="1"] { color: #ffd662; }
@@ -129,10 +131,50 @@
     transform: rotate(5deg);
   }
   .cell.bonus-color-bomb {
-    background: radial-gradient(circle, #f06, #a0c); /* Contoh gaya */
+    background: radial-gradient(circle, #f06, #a0c);
     box-shadow: 0 0 20px #f06, inset 0 0 10px #fff;
     border: 2px solid #fff;
-    transform: rotate(15deg); /* Contoh animasi */
+    transform: rotate(15deg);
+  }
+  /* Animasi penghapusan */
+  .cell.removing {
+    animation: fadeOutScale 0.4s forwards;
+  }
+  @keyframes fadeOutScale {
+    from { transform: scale(1); opacity: 1; }
+    to { transform: scale(0); opacity: 0; }
+  }
+
+  /* Gaya untuk blokir */
+  .cell.ice-block {
+    background: linear-gradient(45deg, #a0d9e0, #c0eaf0);
+    border: 2px solid #80c9d0;
+    box-shadow: inset 0 0 10px rgba(255,255,255,0.5);
+    color: #333;
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+  }
+  .cell.ice-block[data-hits="1"] {
+    background: linear-gradient(45deg, #c0eaf0, #e0faff);
+    border: 2px solid #a0d9e0;
+  }
+  .cell.ice-block .item-content {
+    display: none; /* Sembunyikan item di balik blokir */
+  }
+
+  /* Gaya untuk item khusus (collectible) */
+  .cell.collectible {
+    background: #f0f0f0; /* Warna latar belakang berbeda */
+    border: 2px solid #ccc;
+    box-shadow: inset 0 0 8px rgba(0,0,0,0.2);
+    font-size: 2.5rem; /* Ukuran lebih besar */
+    color: #555;
+  }
+
+  /* Animasi jatuh */
+  .cell.falling {
+    transition: transform 0.5s ease-out;
   }
 
   button {
@@ -168,6 +210,24 @@
     gap: 16px;
     margin-bottom: 20px;
   }
+  .power-ups {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .power-up-btn {
+    background: #e67e22;
+    box-shadow: 0 0 15px rgba(230, 126, 34, 0.7);
+    padding: 10px 15px;
+    min-width: unset;
+    font-size: 1rem;
+  }
+  .power-up-btn:hover:not(:disabled) {
+    background: #d35400;
+    box-shadow: 0 0 20px rgba(211, 84, 0, 0.9);
+  }
+
   #message {
     font-weight: 700;
     font-size: 1.3rem;
@@ -200,6 +260,89 @@
   .music-control .material-icons {
     color: #e0e6f1;
     font-size: 24px;
+  }
+
+  #collectTarget {
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px;
+    background: rgba(255 255 255 / 0.1);
+    border-radius: 10px;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #e0e6f1;
+    display: none;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+  }
+  .collect-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255 255 255 / 0.15);
+    padding: 5px 10px;
+    border-radius: 8px;
+  }
+  .collect-item .icon {
+    font-size: 1.5rem;
+  }
+  .collect-item .count {
+    font-weight: bold;
+  }
+
+  /* Modal Styles */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+  }
+  .modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+  .modal-content {
+    background: linear-gradient(135deg, #203a43, #0f2027);
+    padding: 30px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 10px 50px rgba(0,0,0,0.8);
+    transform: scale(0.8);
+    transition: transform 0.3s ease;
+  }
+  .modal-overlay.active .modal-content {
+    transform: scale(1);
+  }
+  .modal-content h2 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    background: linear-gradient(45deg, #06b6d4, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .modal-content p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    color: #e0e6f1;
+  }
+  .modal-content button {
+    background: #8b5cf6;
+    font-size: 1.2rem;
+    padding: 12px 25px;
+    border-radius: 12px;
+  }
+  .modal-content button:hover {
+    background: #06b6d4;
   }
 
   @media (max-width: 480px) {
@@ -247,6 +390,15 @@
     .music-control .material-icons {
       font-size: 20px;
     }
+    .modal-content {
+      padding: 20px;
+    }
+    .modal-content h2 {
+      font-size: 2rem;
+    }
+    .modal-content p {
+      font-size: 1rem;
+    }
   }
 </style>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
@@ -268,11 +420,22 @@
       <div class="status-value">0</div>
     </div>
     <div class="status-item" id="timeIndicator">
-      <div class="status-label">GERAKAN</div> <!-- Label diubah dari WAKTU ke GERAKAN -->
-      <div class="status-value">25 moves</div> <!-- Nilai awal gerakan -->
+      <div class="status-label">GERAKAN</div>
+      <div class="status-value">25 moves</div>
     </div>
   </div>
+  <div id="collectTarget" style="display: none;">
+    <!-- Target pengumpulan item akan dirender di sini -->
+  </div>
   <div id="grid" aria-label="Game board" tabindex="0"></div>
+  <div class="power-ups">
+    <button id="shuffleBtn" class="power-up-btn" aria-label="Acak Papan" title="Acak Papan">
+      <span class="material-icons">shuffle</span> Acak (<span id="shuffleCount">1</span>)
+    </button>
+    <button id="hammerBtn" class="power-up-btn" aria-label="Hancurkan Item" title="Hancurkan Item">
+      <span class="material-icons">gavel</span> Palu (<span id="hammerCount">1</span>)
+    </button>
+  </div>
   <div class="controls">
     <button id="startBtn" aria-label="Mulai Permainan" title="Mulai Permainan">
       <span class="material-icons" aria-hidden="true">play_arrow</span> Mulai
@@ -287,6 +450,15 @@
   <div id="message" role="alert" aria-live="assertive"></div>
 </div>
 
+<!-- Modal untuk Game Over / Level Complete -->
+<div id="gameModal" class="modal-overlay">
+  <div class="modal-content">
+    <h2 id="modalTitle"></h2>
+    <p id="modalMessage"></p>
+    <button id="modalActionBtn"></button>
+  </div>
+</div>
+
 <!-- Elemen Audio untuk Musik Latar -->
 <audio id="backgroundMusic" loop>
   <source src="https://www.bensound.com/bensound-music/bensound-ukulele.mp3" type="audio/mpeg">
@@ -299,6 +471,9 @@
 <audio id="bonusSound" src="https://www.soundjay.com/buttons/sounds/button-3.mp3"></audio>
 <audio id="gameOverSound" src="https://www.soundjay.com/misc/sounds/fail-buzzer-01.mp3"></audio>
 <audio id="levelUpSound" src="https://www.soundjay.com/misc/sounds/success-fanfare-01.mp3"></audio>
+<audio id="powerUpSound" src="https://www.soundjay.com/misc/sounds/power-up.mp3"></audio>
+<audio id="blockHitSound" src="https://www.soundjay.com/misc/sounds/block-hit.mp3"></audio>
+
 
 <!-- Tombol Kontrol Musik -->
 <div class="music-control" id="musicControlBtn" aria-label="Kontrol Musik">
@@ -311,40 +486,60 @@
 
   const ROWS = 8;
   const COLS = 8;
-  const BASE_MOVES = 25; // Gerakan dasar
+  const BASE_MOVES = 25;
   const MAX_LEVEL = 100;
-  const COLOR_SETS = [3,4,4,4,5,5,5,6,6,6]; // Jumlah warna per level
-  const ITEM_SHAPES = ['🍒', '🍋', '🥝', '🍇', '🍓', '🍊']; // Bentuk item
+  const COLOR_SETS = [3,4,4,4,5,5,5,6,6,6];
+  const ITEM_SHAPES = ['🍒', '🍋', '🥝', '🍇', '🍓', '🍊'];
+  const COLLECTIBLE_SHAPES = ['⭐', '💎', '👑']; // Item khusus yang harus dikumpulkan
 
   const BONUS_TYPES = {
     NONE: 'none',
-    ROW: 'bonus-row', // Dibuat dari 4 item horizontal
-    COLUMN: 'bonus-column', // Dibuat dari 4 item vertikal
-    BOMB: 'bonus-bomb', // Dibuat dari 5 item T/L
-    COLOR_BOMB: 'bonus-color-bomb' // Dibuat dari 5 item lurus
+    ROW: 'bonus-row',
+    COLUMN: 'bonus-column',
+    BOMB: 'bonus-bomb',
+    COLOR_BOMB: 'bonus-color-bomb'
+  };
+
+  const CELL_TYPES = {
+    NORMAL: 'normal',
+    ICE: 'ice-block',
+    COLLECTIBLE: 'collectible'
   };
 
   const gridElement = document.getElementById('grid');
   const levelIndicator = document.getElementById('levelIndicator');
   const scoreIndicator = document.getElementById('scoreIndicator');
   const targetScoreIndicator = document.getElementById('targetScoreIndicator');
-  const movesIndicator = document.getElementById('timeIndicator'); // Menggunakan elemen waktu untuk gerakan
+  const movesIndicator = document.getElementById('timeIndicator');
   const messageElement = document.getElementById('message');
   const startBtn = document.getElementById('startBtn');
   const pauseBtn = document.getElementById('pauseBtn');
   const retryBtn = document.getElementById('retryBtn');
+  const collectTargetElement = document.getElementById('collectTarget');
 
-  // Elemen Musik
+  // Power-up buttons
+  const shuffleBtn = document.getElementById('shuffleBtn');
+  const hammerBtn = document.getElementById('hammerBtn');
+  const shuffleCountSpan = document.getElementById('shuffleCount');
+  const hammerCountSpan = document.getElementById('hammerCount');
+
+  // Modal elements
+  const gameModal = document.getElementById('gameModal');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalMessage = document.getElementById('modalMessage');
+  const modalActionBtn = document.getElementById('modalActionBtn');
+
+  // Audio elements
   const backgroundMusic = document.getElementById('backgroundMusic');
   const musicControlBtn = document.getElementById('musicControlBtn');
   const musicIcon = document.getElementById('musicIcon');
-
-  // Elemen Efek Suara
   const swapSound = document.getElementById('swapSound');
   const matchSound = document.getElementById('matchSound');
   const bonusSound = document.getElementById('bonusSound');
   const gameOverSound = document.getElementById('gameOverSound');
   const levelUpSound = document.getElementById('levelUpSound');
+  const powerUpSound = document.getElementById('powerUpSound');
+  const blockHitSound = document.getElementById('blockHitSound');
 
   let level = 1;
   let score = 0;
@@ -352,277 +547,336 @@
   let maxMoves = BASE_MOVES;
   let isPaused = false;
   let selectedCell = null;
-  let isAnimating = false;
-  let detailedGrid = []; // Menyimpan data warna dan bonus untuk setiap sel
-  let isMusicPlaying = false; // Status musik
+  let isAnimating = false; // Controls user interaction during animations
+  let detailedGrid = [];
+  let isMusicPlaying = false;
 
-  let targetCollect = {}; // {color: amount}
-  let currentCollected = {}; // {color: amount}
+  let targetCollect = {}; // {color: amount} for normal items, {type: amount} for collectibles
+  let currentCollected = {}; // {color: amount} for normal items, {type: amount} for collectibles
+
+  let shufflePowerUps = 1;
+  let hammerPowerUps = 1;
+  let activePowerUp = null; // 'hammer' or null
 
   const delay = ms => new Promise(res => setTimeout(res, ms));
-  const idx = (r,c) => r * COLS + c; // Fungsi bantu untuk mendapatkan indeks 1D dari koordinat 2D
+  const idx = (r,c) => r * COLS + c;
 
   function getRandomInt(min, max){
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
-  // Fungsi untuk memainkan efek suara
   function playSound(audioElement) {
     if (audioElement) {
-      audioElement.currentTime = 0; // Reset audio jika sedang diputar
+      audioElement.currentTime = 0;
       audioElement.play().catch(e => console.warn("Audio play failed:", e));
     }
   }
 
-  // Inisialisasi grid dengan item acak
   function initGrid(){
     const colorCount = level <= COLOR_SETS.length ? COLOR_SETS[level-1] : 6;
     detailedGrid = [];
     for(let r=0; r<ROWS; r++){
       for(let c=0; c<COLS; c++){
-        detailedGrid[idx(r,c)] = {
+        let cell = {
+          type: CELL_TYPES.NORMAL,
           color: getRandomInt(0, colorCount - 1),
-          bonus: BONUS_TYPES.NONE
+          bonus: BONUS_TYPES.NONE,
+          hits: 0 // For ice blocks
         };
+
+        // Add ice blocks randomly for demonstration
+        if (level >= 2 && Math.random() < 0.15) { // 15% chance for ice block from level 2
+            cell.type = CELL_TYPES.ICE;
+            cell.hits = getRandomInt(1, 2); // 1 or 2 hits to break
+            cell.color = -1; // Ice blocks don't have a color
+        }
+        // Add collectible items randomly for demonstration
+        if (level >= 3 && Math.random() < 0.05 && cell.type === CELL_TYPES.NORMAL) { // 5% chance for collectible from level 3
+            cell.type = CELL_TYPES.COLLECTIBLE;
+            cell.collectibleType = getRandomInt(0, COLLECTIBLE_SHAPES.length - 1);
+            cell.color = -1; // Collectibles don't have a color for matching
+        }
+
+        detailedGrid[idx(r,c)] = cell;
       }
     }
-    removeInitialMatches(); // Pastikan tidak ada kecocokan di awal
+    removeInitialMatches();
   }
 
-  // Hapus kecocokan awal yang mungkin terjadi saat inisialisasi grid
   function removeInitialMatches(){
     const matches = findMatches();
     if(matches.length > 0){
-      matches.forEach(i => detailedGrid[i].color = getRandomInt(0, (level <= COLOR_SETS.length ? COLOR_SETS[level-1] : 6) - 1));
-      removeInitialMatches(); // Rekursif sampai tidak ada kecocokan
+      matches.forEach(i => {
+        if (detailedGrid[i].type === CELL_TYPES.NORMAL) {
+            detailedGrid[i].color = getRandomInt(0, (level <= COLOR_SETS.length ? COLOR_SETS[level-1] : 6) - 1);
+        }
+      });
+      removeInitialMatches();
     }
   }
 
-  // Render grid ke DOM
   function renderGrid(){
     gridElement.innerHTML = '';
-    gridElement.style.pointerEvents = isAnimating ? 'none' : 'auto'; // Nonaktifkan interaksi saat animasi
+    gridElement.style.pointerEvents = isAnimating ? 'none' : 'auto';
     for(let i=0; i<detailedGrid.length; i++){
       const cellData = detailedGrid[i];
       const cell = document.createElement('div');
       cell.classList.add('cell');
       cell.dataset.index = i;
-      cell.dataset.color = cellData.color;
-      if(cellData.bonus && cellData.bonus !== BONUS_TYPES.NONE) {
-        cell.classList.add(cellData.bonus); // Tambahkan kelas bonus jika ada
+
+      if (cellData.type === CELL_TYPES.NORMAL) {
+          cell.dataset.color = cellData.color;
+          cell.textContent = ITEM_SHAPES[cellData.color];
+          if(cellData.bonus && cellData.bonus !== BONUS_TYPES.NONE) {
+            cell.classList.add(cellData.bonus);
+          }
+          cell.setAttribute('aria-label', `Item warna nomor ${cellData.color + 1}${cellData.bonus !== BONUS_TYPES.NONE ? `, bonus ${cellData.bonus.replace('bonus-', '')}` : ""}`);
+      } else if (cellData.type === CELL_TYPES.ICE) {
+          cell.classList.add('ice-block');
+          cell.dataset.hits = cellData.hits;
+          cell.textContent = cellData.hits > 0 ? `❄️${cellData.hits}` : ''; // Show hits remaining
+          cell.setAttribute('aria-label', `Blok es, ${cellData.hits} pukulan tersisa`);
+      } else if (cellData.type === CELL_TYPES.COLLECTIBLE) {
+          cell.classList.add('collectible');
+          cell.textContent = COLLECTIBLE_SHAPES[cellData.collectibleType];
+          cell.setAttribute('aria-label', `Item koleksi ${COLLECTIBLE_SHAPES[cellData.collectibleType]}`);
       }
-      if(selectedCell === i) cell.classList.add('selected'); // Tandai sel yang dipilih
-      cell.textContent = ITEM_SHAPES[cellData.color]; // Tampilkan bentuk item
+
+      if(selectedCell === i) cell.classList.add('selected');
       cell.setAttribute('tabindex','0');
       cell.setAttribute('role','button');
-      let bonusText = cellData.bonus !== BONUS_TYPES.NONE ? `, bonus ${cellData.bonus.replace('bonus-', '')}` : "";
-      cell.setAttribute('aria-label', `Item warna nomor ${cellData.color + 1}${bonusText}`);
       cell.onclick = () => onCellClicked(i);
       gridElement.appendChild(cell);
     }
+    updatePowerUpButtons();
   }
 
-  // Cek apakah dua sel berdekatan
   function isAdjacent(a, b){
     const r1 = Math.floor(a/COLS), c1 = a%COLS;
     const r2 = Math.floor(b/COLS), c2 = b%COLS;
     return (r1===r2 && Math.abs(c1-c2)===1) || (c1===c2 && Math.abs(r1-r2)===1);
   }
 
-  // Handler saat sel diklik
   async function onCellClicked(index){
-    if(isAnimating || isPaused) return; // Tidak bisa berinteraksi saat animasi atau jeda
+    if(isAnimating || isPaused) return;
+
+    if (activePowerUp === 'hammer') {
+        await useHammer(index);
+        activePowerUp = null;
+        renderGrid(); // Re-render to remove hammer selection
+        return;
+    }
+
     if(selectedCell === null){
       selectedCell = index;
     } else {
       if(selectedCell === index){
-        selectedCell = null; // Batalkan pilihan jika sel yang sama diklik lagi
+        selectedCell = null;
       } else if(isAdjacent(selectedCell, index)){
-        await swapAndCheck(selectedCell, index); // Tukar dan cek kecocokan
+        // Prevent swapping with ice blocks or collectibles directly
+        if (detailedGrid[selectedCell].type !== CELL_TYPES.NORMAL || detailedGrid[index].type !== CELL_TYPES.NORMAL) {
+            selectedCell = index; // Select new cell if invalid swap
+            renderGrid();
+            return;
+        }
+
+        await swapAndCheck(selectedCell, index);
         selectedCell = null;
       } else {
-        selectedCell = index; // Pilih sel baru
+        selectedCell = index;
       }
     }
     renderGrid();
   }
 
-  // Tukar posisi dua sel dalam detailedGrid
   function swapCells(a,b){
     [detailedGrid[a], detailedGrid[b]] = [detailedGrid[b], detailedGrid[a]];
   }
 
-  // Tukar sel dan cek kecocokan
   async function swapAndCheck(a,b){
-    isAnimating = true; // Setel ke true di awal
+    isAnimating = true; // Disable interaction during this sequence
     const cellA = detailedGrid[a];
     const cellB = detailedGrid[b];
 
-    let specialMatch = false;
-    let colorToClear = -1;
-    let matchesFound = false; // Flag untuk menandai apakah ada kecocokan atau bonus yang diaktifkan
+    let specialMatchTriggered = false;
+    let bonusCombination = BONUS_TYPES.NONE;
 
-    // Logika untuk bonus warna saat ditukar dengan item normal
-    if (cellA.bonus === BONUS_TYPES.COLOR_BOMB && cellB.bonus === BONUS_TYPES.NONE) {
-      specialMatch = true;
-      colorToClear = cellB.color;
-    } else if (cellB.bonus === BONUS_TYPES.COLOR_BOMB && cellA.bonus === BONUS_TYPES.NONE) {
-      specialMatch = true;
-      colorToClear = cellA.color;
+    // Check for Color Bomb + Normal Item interaction
+    if (cellA.bonus === BONUS_TYPES.COLOR_BOMB && cellB.type === CELL_TYPES.NORMAL && cellB.bonus === BONUS_TYPES.NONE) {
+      specialMatchTriggered = true;
+      swapCells(a,b); // Perform swap visually
+      renderGrid();
+      playSound(swapSound);
+      await delay(300);
+      await processSpecialMatches([a, b], cellB.color); // Pass color to clear
+    } else if (cellB.bonus === BONUS_TYPES.COLOR_BOMB && cellA.type === CELL_TYPES.NORMAL && cellA.bonus === BONUS_TYPES.NONE) {
+      specialMatchTriggered = true;
+      swapCells(a,b); // Perform swap visually
+      renderGrid();
+      playSound(swapSound);
+      await delay(300);
+      await processSpecialMatches([a, b], cellA.color); // Pass color to clear
     }
-    // Logika untuk pertukaran dua bonus
+    // Check for bonus combinations
     else if (cellA.bonus !== BONUS_TYPES.NONE && cellB.bonus !== BONUS_TYPES.NONE) {
-        specialMatch = true;
-        colorToClear = 'ALL';
-    }
-
-    swapCells(a,b); // Lakukan pertukaran di data grid
-    renderGrid(); // Perbarui tampilan
-    playSound(swapSound);
-    await delay(300);
-
-    if (specialMatch) {
-      matchesFound = true; // Bonus diaktifkan
-      const indicesToClear = new Set();
-      if (colorToClear === 'ALL') {
-          for (let i = 0; i < detailedGrid.length; i++) {
-              indicesToClear.add(i);
-          }
-      } else {
-          for (let i = 0; i < detailedGrid.length; i++) {
-              if (detailedGrid[i].color === colorToClear) {
-                  indicesToClear.add(i);
-              }
-          }
-      }
-      indicesToClear.add(a);
-      indicesToClear.add(b);
-
-      await processSpecialMatches(Array.from(indicesToClear));
-    } else {
-      const matches = findMatches();
-      if(matches.length > 0){
-        matchesFound = true; // Kecocokan ditemukan
-        await processMatches(matches);
-      } else {
-        // Jika tidak ada kecocokan, kembalikan dan reset isAnimating
-        swapCells(a,b);
+        specialMatchTriggered = true;
+        if ((cellA.bonus === BONUS_TYPES.COLOR_BOMB && (cellB.bonus === BONUS_TYPES.ROW || cellB.bonus === BONUS_TYPES.COLUMN)) ||
+            (cellB.bonus === BONUS_TYPES.COLOR_BOMB && (cellA.bonus === BONUS_TYPES.ROW || cellA.bonus === BONUS_TYPES.COLUMN))) {
+            bonusCombination = 'color_striped';
+        } else if ((cellA.bonus === BONUS_TYPES.COLOR_BOMB && cellB.bonus === BONUS_TYPES.BOMB) ||
+                   (cellB.bonus === BONUS_TYPES.COLOR_BOMB && cellA.bonus === BONUS_TYPES.BOMB)) {
+            bonusCombination = 'color_wrapped';
+        } else if ((cellA.bonus === BONUS_TYPES.ROW || cellA.bonus === BONUS_TYPES.COLUMN) &&
+                   (cellB.bonus === BONUS_TYPES.ROW || cellB.bonus === BONUS_TYPES.COLUMN)) {
+            bonusCombination = 'striped_striped';
+        } else if ((cellA.bonus === BONUS_TYPES.BOMB && cellB.bonus === BONUS_TYPES.BOMB)) {
+            bonusCombination = 'wrapped_wrapped';
+        } else if (((cellA.bonus === BONUS_TYPES.ROW || cellA.bonus === BONUS_TYPES.COLUMN) && cellB.bonus === BONUS_TYPES.BOMB) ||
+                   ((cellB.bonus === BONUS_TYPES.ROW || cellB.bonus === BONUS_TYPES.COLUMN) && cellA.bonus === BONUS_TYPES.BOMB)) {
+            bonusCombination = 'striped_wrapped';
+        } else if (cellA.bonus === BONUS_TYPES.COLOR_BOMB && cellB.bonus === BONUS_TYPES.COLOR_BOMB) {
+            bonusCombination = 'color_color';
+        }
+        swapCells(a,b); // Perform swap visually
         renderGrid();
-        isAnimating = false; // Reset di sini jika tidak ada kecocokan
-      }
+        playSound(swapSound);
+        await delay(300);
+        await processBonusCombination(a, b, bonusCombination);
     }
 
-    // Kurangi gerakan hanya jika ada kecocokan atau bonus yang diaktifkan
-    if (matchesFound) {
+    if (!specialMatchTriggered) {
+        swapCells(a,b); // Perform swap visually
+        renderGrid();
+        playSound(swapSound);
+        await delay(300);
+
+        const matches = findMatches();
+        if(matches.length > 0){
+            await processMatches(matches);
+        } else {
+            swapCells(a,b); // Swap back if no match
+            renderGrid();
+            isAnimating = false; // Re-enable interaction
+        }
+    }
+
+    // Only decrement moves if a match or special interaction occurred
+    if (specialMatchTriggered || (matches && matches.length > 0)) {
         moves--;
         movesIndicator.querySelector('.status-value').textContent = `${moves} moves`;
         if (moves <= 0) {
             gameOver();
+        } else {
+            // After every valid move sequence, check for possible moves
+            if (!hasPossibleMoves()) {
+                showMessage("Tidak ada gerakan yang mungkin! Game Over.", true);
+                gameOver();
+            }
         }
     }
-    // isAnimating sudah direset di akhir processMatches/processSpecialMatches atau di blok else di atas
   }
 
-  // Cari kecocokan (3 atau lebih item yang sama) di grid
-  function findMatches(){
-    const matchesSet = new Set(); // Set untuk menyimpan indeks sel yang cocok
-    const bonusCandidates = []; // Array untuk menyimpan kandidat bonus
+  function checkTLMatch(r, c, color, matchesSet) {
+      // T-shapes
+      // Horizontal T: X X X (middle X is (r,c))
+      //                 X
+      if (c > 0 && c < COLS - 1 && r < ROWS - 1 &&
+          detailedGrid[idx(r, c - 1)].type === CELL_TYPES.NORMAL && detailedGrid[idx(r, c - 1)].color === color &&
+          detailedGrid[idx(r, c + 1)].type === CELL_TYPES.NORMAL && detailedGrid[idx(r, c + 1)].color === color &&
+          detailedGrid[idx(r + 1, c)].type === CELL_TYPES.NORMAL && detailedGrid[idx(r + 1, c)].color === color) {
+          if (matchesSet.has(idx(r, c - 1)) && matchesSet.has(idx(r, c)) && matchesSet.has(idx(r, c + 1)) && matchesSet.has(idx(r + 1, c))) {
+              return { pos: idx(r, c), type: 'bomb_bonus' };
+          }
+      }
+      // Vertical T: X
+      //             X X (middle X is (r,c))
+      //             X
+      if (r > 0 && r < ROWS - 1 && c < COLS - 1 &&
+          detailedGrid[idx(r - 1, c)].type === CELL_TYPES.NORMAL && detailedGrid[idx(r - 1, c)].color === color &&
+          detailedGrid[idx(r + 1, c)].type === CELL_TYPES.NORMAL && detailedGrid[idx(r + 1, c)].color === color &&
+          detailedGrid[idx(r, c + 1)].type === CELL_TYPES.NORMAL && detailedGrid[idx(r, c + 1)].color === color) {
+          if (matchesSet.has(idx(r - 1, c)) && matchesSet.has(idx(r, c)) && matchesSet.has(idx(r + 1, c)) && matchesSet.has(idx(r, c + 1))) {
+              return { pos: idx(r, c), type: 'bomb_bonus' };
+          }
+      }
+      // Add other T and L orientations as needed for full coverage
+      // This is a simplified example. For a robust game, you'd need to check all 8 orientations of T and L.
+      return null;
+  }
 
-    // Cek kecocokan horizontal
+  function findMatches(){
+    const matchesSet = new Set();
+    const bonusCandidates = [];
+
+    // Check horizontal
     for(let r = 0; r < ROWS; r++){
       let chainStart = 0;
       for(let c = 1; c <= COLS; c++){
-        if(c < COLS && detailedGrid[idx(r,c)].color === detailedGrid[idx(r,chainStart)].color) continue;
+        // Only consider normal items for matching
+        if(c < COLS && detailedGrid[idx(r,c)].type === CELL_TYPES.NORMAL && detailedGrid[idx(r,chainStart)].type === CELL_TYPES.NORMAL && detailedGrid[idx(r,c)].color === detailedGrid[idx(r,chainStart)].color) continue;
         const length = c - chainStart;
         if(length >= 3){
-          for(let k = chainStart; k < c; k++) matchesSet.add(idx(r,k));
-          if(length === 4){ // Bonus Baris (Striped Candy)
+          for(let k = chainStart; k < c; k++) {
+            if (detailedGrid[idx(r,k)].type === CELL_TYPES.NORMAL) { // Only add normal items to matchesSet
+                matchesSet.add(idx(r,k));
+            }
+          }
+          if(length === 4){
             const bonusPos = idx(r, Math.floor((chainStart + c - 1) / 2));
-            bonusCandidates.push({pos: bonusPos, type: 'row_bonus'});
-          } else if (length >= 5) { // Bonus Warna (Color Bomb)
+            if (detailedGrid[bonusPos].type === CELL_TYPES.NORMAL) bonusCandidates.push({pos: bonusPos, type: 'row_bonus'});
+          } else if (length >= 5) {
             const bonusPos = idx(r, Math.floor((chainStart + c - 1) / 2));
-            bonusCandidates.push({pos: bonusPos, type: 'color_bomb'});
+            if (detailedGrid[bonusPos].type === CELL_TYPES.NORMAL) bonusCandidates.push({pos: bonusPos, type: 'color_bomb'});
           }
         }
         chainStart = c;
       }
     }
 
-    // Cek kecocokan vertikal
+    // Check vertical
     for(let c = 0; c < COLS; c++){
       let chainStart = 0;
       for(let r = 1; r <= ROWS; r++){
-        if(r < ROWS && detailedGrid[idx(r,c)].color === detailedGrid[idx(chainStart,c)].color) continue;
+        // Only consider normal items for matching
+        if(r < ROWS && detailedGrid[idx(r,c)].type === CELL_TYPES.NORMAL && detailedGrid[idx(chainStart,c)].type === CELL_TYPES.NORMAL && detailedGrid[idx(r,c)].color === detailedGrid[idx(chainStart,c)].color) continue;
         const length = r - chainStart;
         if(length >= 3){
-          for(let k = chainStart; k < r; k++) matchesSet.add(idx(k,c));
-          if(length === 4){ // Bonus Kolom (Striped Candy)
+          for(let k = chainStart; k < r; k++) {
+            if (detailedGrid[idx(k,c)].type === CELL_TYPES.NORMAL) { // Only add normal items to matchesSet
+                matchesSet.add(idx(k,c));
+            }
+          }
+          if(length === 4){
             const bonusPos = idx(Math.floor((chainStart + r - 1) / 2), c);
-            bonusCandidates.push({pos: bonusPos, type: 'column_bonus'});
-          } else if (length >= 5) { // Bonus Warna (Color Bomb)
+            if (detailedGrid[bonusPos].type === CELL_TYPES.NORMAL) bonusCandidates.push({pos: bonusPos, type: 'column_bonus'});
+          } else if (length >= 5) {
             const bonusPos = idx(Math.floor((chainStart + r - 1) / 2), c);
-            bonusCandidates.push({pos: bonusPos, type: 'color_bomb'});
+            if (detailedGrid[bonusPos].type === CELL_TYPES.NORMAL) bonusCandidates.push({pos: bonusPos, type: 'color_bomb'});
           }
         }
         chainStart = r;
       }
     }
 
-    // Cek kecocokan bentuk 'T' atau 'L' untuk Bonus Bomb (Wrapped Candy)
-    // Ini adalah implementasi sederhana, mungkin tidak mencakup semua orientasi.
+    // Check T/L shapes
     for (let r = 0; r < ROWS; r++) {
         for (let c = 0; c < COLS; c++) {
-            const color = detailedGrid[idx(r, c)].color;
-            if (color === -1) continue; // Skip empty cells
-
-            // Bentuk T (horizontal)
-            //   X X X
-            //     X
-            if (c + 2 < COLS && r + 1 < ROWS &&
-                detailedGrid[idx(r, c + 1)].color === color &&
-                detailedGrid[idx(r, c + 2)].color === color &&
-                detailedGrid[idx(r + 1, c + 1)].color === color) {
-                // Pastikan semua sel yang membentuk T adalah bagian dari matchesSet
-                if (matchesSet.has(idx(r, c)) && matchesSet.has(idx(r, c + 1)) && matchesSet.has(idx(r, c + 2)) && matchesSet.has(idx(r + 1, c + 1))) {
-                    bonusCandidates.push({ pos: idx(r, c + 1), type: 'bomb_bonus' }); // Posisi tengah T
+            if (detailedGrid[idx(r, c)].type === CELL_TYPES.NORMAL) {
+                const color = detailedGrid[idx(r, c)].color;
+                const tlBonus = checkTLMatch(r, c, color, matchesSet);
+                if (tlBonus) {
+                    if (detailedGrid[tlBonus.pos].type === CELL_TYPES.NORMAL) bonusCandidates.push(tlBonus);
                 }
             }
-            // Bentuk T (vertikal)
-            //   X
-            //   X X
-            //   X
-            if (r + 2 < ROWS && c + 1 < COLS &&
-                detailedGrid[idx(r + 1, c)].color === color &&
-                detailedGrid[idx(r + 2, c)].color === color &&
-                detailedGrid[idx(r + 1, c + 1)].color === color) {
-                if (matchesSet.has(idx(r, c)) && matchesSet.has(idx(r + 1, c)) && matchesSet.has(idx(r + 2, c)) && matchesSet.has(idx(r + 1, c + 1))) {
-                    bonusCandidates.push({ pos: idx(r + 1, c), type: 'bomb_bonus' }); // Posisi tengah T
-                }
-            }
-            // Bentuk L (atas kiri)
-            // X
-            // X
-            // X X X
-            if (r + 2 < ROWS && c + 2 < COLS &&
-                detailedGrid[idx(r + 1, c)].color === color &&
-                detailedGrid[idx(r + 2, c)].color === color &&
-                detailedGrid[idx(r + 2, c + 1)].color === color &&
-                detailedGrid[idx(r + 2, c + 2)].color === color) {
-                if (matchesSet.has(idx(r, c)) && matchesSet.has(idx(r + 1, c)) && matchesSet.has(idx(r + 2, c)) && matchesSet.has(idx(r + 2, c + 1)) && matchesSet.has(idx(r + 2, c + 2))) {
-                    bonusCandidates.push({ pos: idx(r + 2, c), type: 'bomb_bonus' }); // Posisi sudut L
-                }
-            }
-            // Tambahkan lebih banyak pola L/T jika diperlukan
         }
     }
 
-
-    // Hapus bonus yang sudah ada di sel yang akan cocok
+    // Clear existing bonuses on matched cells before assigning new ones
     matchesSet.forEach(i => { detailedGrid[i].bonus = BONUS_TYPES.NONE; });
 
-    // Tetapkan bonus ke sel yang sesuai
+    // Assign new bonuses
     for(const bonus of bonusCandidates){
-      if(matchesSet.has(bonus.pos)){ // Pastikan posisi bonus masih bagian dari kecocokan
+      if(matchesSet.has(bonus.pos)){
         if(bonus.type === 'row_bonus'){
           detailedGrid[bonus.pos].bonus = BONUS_TYPES.ROW;
         } else if(bonus.type === 'column_bonus'){
@@ -638,203 +892,422 @@
     return Array.from(matchesSet);
   }
 
-  // Proses kecocokan yang ditemukan
-  async function processMatches(matched){
-    if(matched.length === 0){
-        isAnimating = false; // PENTING: Reset di sini jika tidak ada kecocokan yang diproses
+  async function processMatches(matchedIndices){
+    if(matchedIndices.length === 0){
+        isAnimating = false; // Re-enable interaction if no matches to process
         return;
     }
 
-    playSound(matchSound); // Mainkan suara match
+    playSound(matchSound);
 
-    const expandedMatches = new Set(matched); // Set untuk semua sel yang akan dihapus
+    const cellsToClear = new Set(); // All cells that will be removed
+    const cellsToHit = new Set(); // Cells that will take damage (e.g., ice blocks)
 
-    // Perluas kecocokan berdasarkan bonus yang terlibat
-    matched.forEach(i => {
-      const cell = detailedGrid[i];
-      if(cell.bonus === BONUS_TYPES.ROW){ // Bonus Baris
-        playSound(bonusSound);
-        const r = Math.floor(i / COLS);
-        for(let c=0; c<COLS; c++) expandedMatches.add(idx(r,c));
-      } else if(cell.bonus === BONUS_TYPES.COLUMN){ // Bonus Kolom
-        playSound(bonusSound);
-        const c = i % COLS;
-        for(let r=0; r<ROWS; r++) expandedMatches.add(idx(r,c));
-      } else if(cell.bonus === BONUS_TYPES.BOMB){ // Bonus Bomb (3x3 area)
-        playSound(bonusSound);
-        const r = Math.floor(i / COLS);
-        const c = i % COLS;
-        for(let dr=-1; dr<=1; dr++){
-          for(let dc=-1; dc<=1; dc++){
-            const nr = r + dr, nc = c + dc;
-            if(nr>=0 && nr<ROWS && nc>=0 && nc<COLS) expandedMatches.add(idx(nr,nc));
-          }
+    matchedIndices.forEach(i => {
+        const cell = detailedGrid[i];
+        if (cell.type === CELL_TYPES.NORMAL) {
+            cellsToClear.add(i);
+            // Expand based on bonus
+            if(cell.bonus === BONUS_TYPES.ROW){
+                playSound(bonusSound);
+                const r = Math.floor(i / COLS);
+                for(let c=0; c<COLS; c++) cellsToClear.add(idx(r,c));
+            } else if(cell.bonus === BONUS_TYPES.COLUMN){
+                playSound(bonusSound);
+                const c = i % COLS;
+                for(let r=0; r<ROWS; r++) cellsToClear.add(idx(r,c));
+            } else if(cell.bonus === BONUS_TYPES.BOMB){
+                playSound(bonusSound);
+                const r = Math.floor(i / COLS);
+                const c = i % COLS;
+                for(let dr=-1; dr<=1; dr++){
+                    for(let dc=-1; dc<=1; dc++){
+                        const nr = r + dr, nc = c + dc;
+                        if(nr>=0 && nr<ROWS && nc>=0 && nc<COLS) cellsToClear.add(idx(nr,nc));
+                    }
+                }
+            } else if(cell.bonus === BONUS_TYPES.COLOR_BOMB){
+                playSound(bonusSound);
+                for (let j = 0; j < detailedGrid.length; j++) {
+                    cellsToClear.add(j);
+                }
+            }
+        } else if (cell.type === CELL_TYPES.ICE) {
+            cellsToHit.add(i); // Ice blocks are hit, not cleared directly by match
         }
-      } else if(cell.bonus === BONUS_TYPES.COLOR_BOMB){
-          // Jika Color Bomb cocok sendiri (misalnya, 5 Color Bomb berjejer),
-          // kita bisa membuatnya menghapus semua item di papan.
-          playSound(bonusSound);
-          for (let j = 0; j < detailedGrid.length; j++) {
-              expandedMatches.add(j);
-          }
-      }
     });
 
-    score += expandedMatches.size * 10; // Tambahkan skor
+    // Process hits on ice blocks
+    cellsToClear.forEach(i => {
+        const r = Math.floor(i / COLS);
+        const c = i % COLS;
+        // Check neighbors for ice blocks
+        const neighbors = [
+            idx(r-1, c), idx(r+1, c), idx(r, c-1), idx(r, c+1), // Direct neighbors
+            idx(r-1, c-1), idx(r-1, c+1), idx(r+1, c-1), idx(r+1, c+1) // Diagonal neighbors (for bomb effect)
+        ];
+        neighbors.forEach(nIdx => {
+            if (nIdx >= 0 && nIdx < detailedGrid.length && detailedGrid[nIdx].type === CELL_TYPES.ICE) {
+                cellsToHit.add(nIdx);
+            }
+        });
+    });
+
+    // Apply damage to ice blocks
+    cellsToHit.forEach(i => {
+        if (detailedGrid[i].type === CELL_TYPES.ICE) {
+            detailedGrid[i].hits--;
+            playSound(blockHitSound);
+            if (detailedGrid[i].hits <= 0) {
+                cellsToClear.add(i); // Add to clear list if destroyed
+            }
+        }
+    });
+
+    score += cellsToClear.size * 10;
     scoreIndicator.querySelector('.status-value').textContent = score;
 
-    // Hitung item yang terkumpul untuk target
-    expandedMatches.forEach(i => {
-        const color = detailedGrid[i].color;
-        if (color !== -1) { // Pastikan bukan sel kosong
-            currentCollected[color] = (currentCollected[color] || 0) + 1;
+    // Collect items and animate removal
+    cellsToClear.forEach(i => {
+        const cell = detailedGrid[i];
+        if (cell.type === CELL_TYPES.NORMAL) {
+            currentCollected[cell.color] = (currentCollected[cell.color] || 0) + 1;
+        } else if (cell.type === CELL_TYPES.COLLECTIBLE) {
+            currentCollected[cell.collectibleType] = (currentCollected[cell.collectibleType] || 0) + 1;
+        }
+        const domCell = gridElement.children[i];
+        if(domCell){
+            domCell.classList.add('removing');
         }
     });
+    updateCollectTargetUI();
 
-    // Animasi penghapusan sel
-    expandedMatches.forEach(i => {
-      const cell = gridElement.children[i];
-      if(cell){
-        cell.style.transition = 'transform 0.4s ease, opacity 0.4s ease';
-        cell.style.transform = 'scale(0)';
-        cell.style.opacity = '0';
-      }
+    await delay(400);
+
+    // Set cleared cells to empty
+    cellsToClear.forEach(i => {
+      detailedGrid[i] = { type: CELL_TYPES.NORMAL, color: -1, bonus: BONUS_TYPES.NONE, hits: 0 };
     });
 
-    await delay(400); // Tunggu animasi selesai
+    await dropCandies(); // This now handles animation
+    refillGrid();
+    renderGrid();
 
-    // Setel sel yang dihapus ke -1 (kosong) dan hapus bonus
-    expandedMatches.forEach(i => {
-      detailedGrid[i].color = -1;
-      detailedGrid[i].bonus = BONUS_TYPES.NONE;
-    });
+    await delay(300);
 
-    dropCandies(); // Jatuhkan item di atas
-    refillGrid(); // Isi ulang grid
-    renderGrid(); // Perbarui tampilan
-
-    await delay(300); // Tunggu animasi jatuh dan isi ulang
-
-    const newMatches = findMatches(); // Cari kecocokan berantai
+    const newMatches = findMatches();
     if(newMatches.length > 0){
-      await processMatches(newMatches); // Rekursif, isAnimating akan direset di akhir rantai
+      await processMatches(newMatches); // Recursive call for chain reactions
     } else{
-      isAnimating = false; // PENTING: Reset di sini setelah semua rantai kecocokan selesai
+      isAnimating = false; // Re-enable interaction only after all chain reactions are done
       checkLevelCompletion();
     }
   }
 
-  // Fungsi terpisah untuk memproses kecocokan khusus (misalnya dari bonus warna)
-  async function processSpecialMatches(indicesToClear) {
-      playSound(bonusSound); // Mainkan suara bonus
-      const expandedMatches = new Set(indicesToClear);
+  async function processSpecialMatches(originIndices, colorToClear) {
+      playSound(bonusSound);
+      const cellsToClear = new Set(originIndices);
 
-      score += expandedMatches.size * 10;
+      for (let i = 0; i < detailedGrid.length; i++) {
+          if (detailedGrid[i].type === CELL_TYPES.NORMAL && detailedGrid[i].color === colorToClear) {
+              cellsToClear.add(i);
+          }
+      }
+
+      // Process hits on ice blocks adjacent to cleared cells
+      cellsToClear.forEach(i => {
+          const r = Math.floor(i / COLS);
+          const c = i % COLS;
+          for(let dr=-1; dr<=1; dr++){
+              for(let dc=-1; dc<=1; dc++){
+                  const nr = r + dr, nc = c + dc;
+                  const nIdx = idx(nr, nc);
+                  if(nr>=0 && nr<ROWS && nc>=0 && nc<COLS && detailedGrid[nIdx].type === CELL_TYPES.ICE) {
+                      detailedGrid[nIdx].hits--;
+                      playSound(blockHitSound);
+                      if (detailedGrid[nIdx].hits <= 0) {
+                          cellsToClear.add(nIdx);
+                      }
+                  }
+              }
+          }
+      });
+
+      score += cellsToClear.size * 10;
       scoreIndicator.querySelector('.status-value').textContent = score;
 
-      // Hitung item yang terkumpul untuk target
-      expandedMatches.forEach(i => {
-          const color = detailedGrid[i].color;
-          if (color !== -1) {
-              currentCollected[color] = (currentCollected[color] || 0) + 1;
+      cellsToClear.forEach(i => {
+          const cell = detailedGrid[i];
+          if (cell.type === CELL_TYPES.NORMAL) {
+              currentCollected[cell.color] = (currentCollected[cell.color] || 0) + 1;
+          } else if (cell.type === CELL_TYPES.COLLECTIBLE) {
+              currentCollected[cell.collectibleType] = (currentCollected[cell.collectibleType] || 0) + 1;
+          }
+          const domCell = gridElement.children[i];
+          if(domCell){
+              domCell.classList.add('removing');
           }
       });
-
-      expandedMatches.forEach(i => {
-          const cell = gridElement.children[i];
-          if(cell){
-              cell.style.transition = 'transform 0.4s ease, opacity 0.4s ease';
-              cell.style.transform = 'scale(0)';
-              cell.style.opacity = '0';
-          }
-      });
+      updateCollectTargetUI();
 
       await delay(400);
 
-      expandedMatches.forEach(i => {
-          detailedGrid[i].color = -1;
-          detailedGrid[i].bonus = BONUS_TYPES.NONE;
+      cellsToClear.forEach(i => {
+          detailedGrid[i] = { type: CELL_TYPES.NORMAL, color: -1, bonus: BONUS_TYPES.NONE, hits: 0 };
       });
 
-      dropCandies();
+      await dropCandies();
       refillGrid();
       renderGrid();
 
       await delay(300);
 
-      const newMatches = findMatches(); // Cari kecocokan berantai setelah bonus khusus
+      const newMatches = findMatches();
       if(newMatches.length > 0){
-          await processMatches(newMatches); // Rekursif, isAnimating akan direset di akhir rantai
+          await processMatches(newMatches);
       } else{
-          isAnimating = false; // PENTING: Reset di sini setelah semua rantai kecocokan selesai
+          isAnimating = false;
           checkLevelCompletion();
       }
   }
 
+  async function processBonusCombination(idx1, idx2, combinationType) {
+      playSound(bonusSound);
+      const cellsToClear = new Set();
+      const cellsToHit = new Set();
 
-  // Jatuhkan item ke bawah untuk mengisi ruang kosong
-  function dropCandies(){
-    for(let c=0; c<COLS; c++){
-      let col = [];
-      for(let r=ROWS-1; r>=0; r--){ // Iterasi dari bawah ke atas
-        const cell = detailedGrid[idx(r,c)];
-        if(cell.color !== -1) col.push(cell);
+      // Mark original bonus cells for removal
+      cellsToClear.add(idx1);
+      cellsToClear.add(idx2);
+
+      if (combinationType === 'color_striped') {
+          const targetColor = detailedGrid[idx1].color === -1 ? detailedGrid[idx2].color : detailedGrid[idx1].color;
+          for (let i = 0; i < detailedGrid.length; i++) {
+              if (detailedGrid[i].type === CELL_TYPES.NORMAL && detailedGrid[i].color === targetColor) {
+                  // Activate striped effect for all items of that color
+                  const r = Math.floor(i / COLS);
+                  for(let c=0; c<COLS; c++) cellsToClear.add(idx(r,c));
+                  const c = i % COLS;
+                  for(let r=0; r<ROWS; r++) cellsToClear.add(idx(r,c));
+              }
+          }
+      } else if (combinationType === 'color_wrapped') {
+          const targetColor = detailedGrid[idx1].color === -1 ? detailedGrid[idx2].color : detailedGrid[idx1].color;
+          for (let i = 0; i < detailedGrid.length; i++) {
+              if (detailedGrid[i].type === CELL_TYPES.NORMAL && detailedGrid[i].color === targetColor) {
+                  // Activate bomb effect for all items of that color
+                  const r = Math.floor(i / COLS);
+                  const c = i % COLS;
+                  for(let dr=-1; dr<=1; dr++){
+                    for(let dc=-1; dc<=1; dc++){
+                      const nr = r + dr, nc = c + dc;
+                      if(nr>=0 && nr<ROWS && nc>=0 && nc<COLS) cellsToClear.add(idx(nr,nc));
+                    }
+                  }
+              }
+          }
+      } else if (combinationType === 'striped_striped') {
+          const r1 = Math.floor(idx1 / COLS), c1 = idx1 % COLS;
+          const r2 = Math.floor(idx2 / COLS), c2 = idx2 % COLS;
+          for(let c=0; c<COLS; c++) { cellsToClear.add(idx(r1,c)); cellsToClear.add(idx(r2,c)); }
+          for(let r=0; r<ROWS; r++) { cellsToClear.add(idx(r,c1)); cellsToClear.add(idx(r,c2)); }
+      } else if (combinationType === 'wrapped_wrapped') {
+          const r = Math.floor(idx1 / COLS);
+          const c = idx1 % COLS;
+          for(let dr=-2; dr<=2; dr++){
+              for(let dc=-2; dc<=2; dc++){
+                  const nr = r + dr, nc = c + dc;
+                  if(nr>=0 && nr<ROWS && nc>=0 && nc<COLS) cellsToClear.add(idx(nr,nc));
+              }
+          }
+      } else if (combinationType === 'striped_wrapped') {
+          const r = Math.floor(idx1 / COLS);
+          const c = idx1 % COLS;
+          for(let dr=-1; dr<=1; dr++){
+              for(let dc=-1; dc<=1; dc++){
+                  const nr = r + dr, nc = c + dc;
+                  if(nr>=0 && nr<ROWS && nc>=0 && nc<COLS) cellsToClear.add(idx(nr,nc));
+              }
+          }
+          for(let col=0; col<COLS; col++) cellsToClear.add(idx(r,col));
+          for(let row=0; row<ROWS; row++) cellsToClear.add(idx(row,c));
+      } else if (combinationType === 'color_color') {
+          for (let i = 0; i < detailedGrid.length; i++) {
+              cellsToClear.add(i);
+          }
       }
-      // Isi bagian atas kolom dengan item kosong (-1)
-      while(col.length < ROWS) col.push({color: -1, bonus: BONUS_TYPES.NONE});
-      // Balikkan kolom agar item yang jatuh berada di bawah
-      col.reverse();
-      for(let r=0; r<ROWS; r++){
-        detailedGrid[idx(r,c)] = col[r];
+
+      // Process hits on ice blocks adjacent to cleared cells
+      cellsToClear.forEach(i => {
+          const r = Math.floor(i / COLS);
+          const c = i % COLS;
+          for(let dr=-1; dr<=1; dr++){
+              for(let dc=-1; dc<=1; dc++){
+                  const nr = r + dr, nc = c + dc;
+                  const nIdx = idx(nr, nc);
+                  if(nr>=0 && nr<ROWS && nc>=0 && nc<COLS && detailedGrid[nIdx].type === CELL_TYPES.ICE) {
+                      cellsToHit.add(nIdx);
+                  }
+              }
+          }
+      });
+
+      cellsToHit.forEach(i => {
+          detailedGrid[i].hits--;
+          playSound(blockHitSound);
+          if (detailedGrid[i].hits <= 0) {
+              cellsToClear.add(i);
+          }
+      });
+
+      score += cellsToClear.size * 10;
+      scoreIndicator.querySelector('.status-value').textContent = score;
+
+      cellsToClear.forEach(i => {
+          const cell = detailedGrid[i];
+          if (cell.type === CELL_TYPES.NORMAL) {
+              currentCollected[cell.color] = (currentCollected[cell.color] || 0) + 1;
+          } else if (cell.type === CELL_TYPES.COLLECTIBLE) {
+              currentCollected[cell.collectibleType] = (currentCollected[cell.collectibleType] || 0) + 1;
+          }
+          const domCell = gridElement.children[i];
+          if(domCell){
+              domCell.classList.add('removing');
+          }
+      });
+      updateCollectTargetUI();
+
+      await delay(400);
+
+      cellsToClear.forEach(i => {
+          detailedGrid[i] = { type: CELL_TYPES.NORMAL, color: -1, bonus: BONUS_TYPES.NONE, hits: 0 };
+      });
+
+      await dropCandies();
+      refillGrid();
+      renderGrid();
+
+      await delay(300);
+
+      const newMatches = findMatches();
+      if(newMatches.length > 0){
+          await processMatches(newMatches);
+      } else{
+          isAnimating = false;
+          checkLevelCompletion();
       }
-    }
   }
 
-  // Isi ulang sel yang kosong dengan item baru
+  async function dropCandies(){
+    const cellsToAnimate = [];
+    // Store initial positions for animation calculation
+    const initialPositions = new Map();
+    for (let i = 0; i < detailedGrid.length; i++) {
+        initialPositions.set(detailedGrid[i], i);
+    }
+
+    for(let c=0; c<COLS; c++){
+      let col = [];
+      for(let r=ROWS-1; r>=0; r--){
+        const cell = detailedGrid[idx(r,c)];
+        if(cell.color !== -1 || cell.type === CELL_TYPES.ICE || cell.type === CELL_TYPES.COLLECTIBLE) {
+            col.push(cell);
+        }
+      }
+      // Fill top with empty cells
+      while(col.length < ROWS) col.push({type: CELL_TYPES.NORMAL, color: -1, bonus: BONUS_TYPES.NONE, hits: 0});
+      col.reverse(); // Items that fall are now at the bottom of the temp column
+
+      for(let r=0; r<ROWS; r++){
+        const currentCellInGrid = detailedGrid[idx(r,c)];
+        const newCellForThisSpot = col[r];
+
+        // If the cell at this position is changing, it means something fell or it's a new item
+        if (currentCellInGrid !== newCellForThisSpot) { // Check if it's a different object reference
+            const oldIndex = initialPositions.get(newCellForThisSpot); // Find where this new cell came from
+            if (oldIndex !== undefined && oldIndex !== idx(r,c)) { // If it came from somewhere else
+                cellsToAnimate.push({
+                    element: gridElement.children[oldIndex], // Animate the actual DOM element that moved
+                    fromRow: Math.floor(oldIndex / COLS),
+                    toRow: r
+                });
+            }
+        }
+        detailedGrid[idx(r,c)] = newCellForThisSpot; // Update the detailedGrid
+      }
+    }
+
+    // Apply falling animation
+    if (cellsToAnimate.length > 0) {
+        isAnimating = true; // Disable interaction during fall animation
+        cellsToAnimate.forEach(({ element, fromRow, toRow }) => {
+            const distance = (toRow - fromRow) * (element.offsetHeight + 8); // 8px is gap
+            element.style.transition = 'none'; // Disable transition for initial position
+            element.style.transform = `translateY(-${distance}px)`;
+            // Force reflow
+            void element.offsetWidth;
+            element.style.transition = 'transform 0.5s ease-out';
+            element.style.transform = 'translateY(0)';
+        });
+        await delay(500); // Wait for animation
+        isAnimating = false; // Re-enable interaction after fall animation
+    }
+
+    // Check for collected items at the bottom row
+    for (let c = 0; c < COLS; c++) {
+        const bottomCellIdx = idx(ROWS - 1, c);
+        const bottomCell = detailedGrid[bottomCellIdx];
+        if (bottomCell.type === CELL_TYPES.COLLECTIBLE) {
+            currentCollected[bottomCell.collectibleType] = (currentCollected[bottomCell.collectibleType] || 0) + 1;
+            detailedGrid[bottomCellIdx] = { type: CELL_TYPES.NORMAL, color: -1, bonus: BONUS_TYPES.NONE, hits: 0 }; // Remove collectible
+            playSound(bonusSound); // Play a sound for collecting
+        }
+    }
+    updateCollectTargetUI();
+  }
+
   function refillGrid(){
     const colorCount = level <= COLOR_SETS.length ? COLOR_SETS[level-1] : 6;
     for(let i=0; i<detailedGrid.length; i++){
-      if(detailedGrid[i].color === -1){
+      if(detailedGrid[i].color === -1 && detailedGrid[i].type === CELL_TYPES.NORMAL){
         detailedGrid[i].color = getRandomInt(0, colorCount - 1);
         detailedGrid[i].bonus = BONUS_TYPES.NONE;
       }
     }
+    removeInitialMatches(); // Ensure no new matches are formed immediately after refill
   }
 
-  // Fungsi Game Over
   function gameOver(){
     isAnimating = true;
-    playSound(gameOverSound); // Mainkan suara game over
-    showMessage(`Gerakan habis! Level ${level} gagal. Silakan ulangi level ini atau mulai ulang permainan.`, true);
+    playSound(gameOverSound);
+    showModal("Game Over!", `Level ${level} gagal. Skor Anda: ${score}.`, "Coba Lagi");
     pauseBtn.disabled = true;
     retryBtn.disabled = false;
     startBtn.disabled = false;
     isPaused = true;
     if (isMusicPlaying) {
-        backgroundMusic.pause(); // Jeda musik saat game over
+        backgroundMusic.pause();
     }
   }
 
-  // Jeda/Lanjutkan permainan
   function pauseGame(){
-    if(isAnimating) return; // Tidak bisa jeda saat animasi
+    if(isAnimating) return;
     isPaused = !isPaused;
     if(isPaused){
       pauseBtn.innerHTML = '<span class="material-icons" aria-hidden="true">play_arrow</span> Lanjutkan';
       showMessage("Permainan dijeda.", false);
       if (isMusicPlaying) {
-          backgroundMusic.pause(); // Jeda musik saat jeda game
+          backgroundMusic.pause();
       }
     } else {
       pauseBtn.innerHTML = '<span class="material-icons" aria-hidden="true">pause</span> Jeda';
       showMessage("Permainan dilanjutkan.", false);
       if (isMusicPlaying) {
-          backgroundMusic.play(); // Lanjutkan musik saat game dilanjutkan
+          backgroundMusic.play();
       }
     }
   }
 
-  // Cek apakah level selesai
   function checkLevelCompletion(){
     const currentTargetScore = level * 500;
     targetScoreIndicator.querySelector('.status-value').textContent = currentTargetScore;
@@ -842,10 +1315,9 @@
     let scoreMet = score >= currentTargetScore;
     let collectTargetMet = true;
 
-    // Cek target mengumpulkan item
-    for (const color in targetCollect) {
-        if (targetCollect.hasOwnProperty(color)) { // Pastikan properti milik objek itu sendiri
-            if ((currentCollected[color] || 0) < targetCollect[color]) { // Gunakan (currentCollected[color] || 0) untuk menghindari undefined
+    for (const key in targetCollect) {
+        if (targetCollect.hasOwnProperty(key)) {
+            if ((currentCollected[key] || 0) < targetCollect[key]) {
                 collectTargetMet = false;
                 break;
             }
@@ -854,112 +1326,125 @@
 
     if(scoreMet && collectTargetMet){
       prepareNextLevel();
-    } else if (moves <= 0) { // Jika gerakan habis dan target belum tercapai
+    } else if (moves <= 0) {
         gameOver();
     } else if (!scoreMet) {
         showMessage(`Skor kurang! Butuh ${currentTargetScore - score} lagi.`, false);
     } else if (!collectTargetMet) {
         let missingItems = [];
-        for (const color in targetCollect) {
-            if (targetCollect.hasOwnProperty(color)) {
-                if ((currentCollected[color] || 0) < targetCollect[color]) {
-                    missingItems.push(`${targetCollect[color] - (currentCollected[color] || 0)} ${ITEM_SHAPES[color]}`);
+        for (const key in targetCollect) {
+            if (targetCollect.hasOwnProperty(key)) {
+                const required = targetCollect[key];
+                const collected = currentCollected[key] || 0;
+                if (collected < required) {
+                    // Check if it's a normal item color or a collectible type
+                    const itemDisplay = ITEM_SHAPES[key] || COLLECTIBLE_SHAPES[key];
+                    missingItems.push(`${required - collected} ${itemDisplay}`);
                 }
             }
         }
         showMessage(`Kumpulkan ${missingItems.join(', ')} lagi!`, false);
     }
+
+    // Only check for no possible moves if game is not animating and not already over
+    if (!isAnimating && moves > 0 && !gameModal.classList.contains('active') && !hasPossibleMoves()) {
+        showMessage("Tidak ada gerakan yang mungkin! Game Over.", true);
+        gameOver();
+    }
   }
 
-  // Persiapan untuk level berikutnya
   function prepareNextLevel(){
-    playSound(levelUpSound); // Mainkan suara level up
+    playSound(levelUpSound);
     isAnimating = true;
-    maxMoves = BASE_MOVES + (level * 3); // Gerakan bertambah setiap level
-    if(level % 5 === 0){ // Bonus gerakan setiap 5 level
+    maxMoves = BASE_MOVES + (level * 3);
+    if(level % 5 === 0){
       maxMoves += 10;
-      showMessage(`Level ${level} selesai! +10 gerakan bonus! Total gerakan: ${maxMoves}. Tekan Mulai untuk lanjut level berikutnya. Target skor: ${(level + 1)*500}`, false);
-    } else {
-      showMessage(`Level ${level} selesai! Tekan Mulai untuk lanjut level berikutnya. Target skor: ${(level + 1)*500}`, false);
     }
+    showModal("Level Selesai!", `Selamat! Anda menyelesaikan Level ${level}. Skor Anda: ${score}.`, "Lanjut Level");
     pauseBtn.disabled = true;
     retryBtn.disabled = true;
     startBtn.disabled = false;
     if (isMusicPlaying) {
-        backgroundMusic.pause(); // Jeda musik saat level selesai
+        backgroundMusic.pause();
     }
   }
 
-  // Mulai level berikutnya
   function startNextLevel(){
     if(level < MAX_LEVEL){
       level++;
       score = 0;
-      moves = maxMoves; // Reset gerakan untuk level baru
+      moves = maxMoves;
       selectedCell = null;
       isAnimating = false;
-      targetCollect = {}; // Reset target collect
-      currentCollected = {}; // Reset current collected
+      targetCollect = {};
+      currentCollected = {};
+
+      // Give power-ups every few levels
+      if (level % 5 === 0) shufflePowerUps++;
+      if (level % 7 === 0) hammerPowerUps++;
 
       initGrid();
       renderGrid();
       updateButtons(true);
       updateUIElements();
 
-      // Simpan level tertinggi yang dicapai
       localStorage.setItem('fruitCrushMaxLevel', level);
 
-      // Tentukan target baru untuk level ini
       const targetScore = level * 500;
       targetScoreIndicator.querySelector('.status-value').textContent = targetScore;
 
-      if (level % 3 === 0) { // Setiap 3 level, ada target mengumpulkan item
+      // Define new collection targets for this level
+      if (level % 2 === 0) { // Every 2 levels, target a normal item
           const colorCount = level <= COLOR_SETS.length ? COLOR_SETS[level-1] : 6;
           const targetColor = getRandomInt(0, colorCount - 1);
-          const targetAmount = 10 + level * 2;
+          const targetAmount = 10 + Math.floor(level / 2) * 5;
           targetCollect[targetColor] = targetAmount;
           showMessage(`Level ${level} mulai! Kumpulkan ${targetAmount} ${ITEM_SHAPES[targetColor]}! Target skor: ${targetScore}`, false);
+      } else if (level % 3 === 0) { // Every 3 levels, target a collectible
+          const targetCollectibleType = getRandomInt(0, COLLECTIBLE_SHAPES.length - 1);
+          const targetAmount = 3 + Math.floor(level / 3) * 1;
+          targetCollect[targetCollectibleType] = targetAmount; // Use collectible type as key
+          showMessage(`Level ${level} mulai! Kumpulkan ${targetAmount} ${COLLECTIBLE_SHAPES[targetCollectibleType]}! Target skor: ${targetScore}`, false);
       } else {
           showMessage(`Level ${level} mulai! Selamat bermain! Target skor: ${targetScore}`, false);
       }
+      updateCollectTargetUI();
 
       if (isMusicPlaying) {
-          backgroundMusic.play(); // Lanjutkan musik saat level baru dimulai
+          backgroundMusic.play();
       }
     } else {
-      showMessage(`Selamat! Anda menyelesaikan semua ${MAX_LEVEL} level! Skor akhir: ${score}`, false);
+      showModal("Selamat!", `Anda menyelesaikan semua ${MAX_LEVEL} level! Skor akhir: ${score}`, "Mulai Ulang");
       pauseBtn.disabled = true;
       retryBtn.disabled = false;
       startBtn.disabled = false;
       if (isMusicPlaying) {
-          backgroundMusic.pause(); // Jeda musik jika semua level selesai
+          backgroundMusic.pause();
       }
     }
   }
 
-  // Perbarui elemen UI (level, skor, gerakan)
   function updateUIElements(){
     levelIndicator.querySelector('.status-value').textContent = level;
     scoreIndicator.querySelector('.status-value').textContent = score;
     movesIndicator.querySelector('.status-value').textContent = `${moves} moves`;
   }
 
-  // Perbarui status tombol
   function updateButtons(gameStarted){
     startBtn.disabled = gameStarted;
     pauseBtn.disabled = !gameStarted;
     retryBtn.disabled = !gameStarted;
   }
 
-  // Tampilkan pesan di layar
   function showMessage(msg, isError = false){
     messageElement.textContent = msg;
     messageElement.style.color = isError ? '#ff5555' : '#00ff90';
   }
 
-  // Mulai permainan baru
   function startGame(){
-    // Jika tombol start diklik setelah level selesai/game over, itu berarti mulai level berikutnya
+    if(gameModal.classList.contains('active')) { // If modal is open, close it first
+        gameModal.classList.remove('active');
+    }
     if(isAnimating && pauseBtn.disabled && retryBtn.disabled && !startBtn.disabled){
       startNextLevel();
       return;
@@ -973,6 +1458,8 @@
     isAnimating = false;
     targetCollect = {};
     currentCollected = {};
+    shufflePowerUps = 1; // Reset power-ups
+    hammerPowerUps = 1;
 
     initGrid();
     renderGrid();
@@ -980,20 +1467,37 @@
     updateUIElements();
     targetScoreIndicator.querySelector('.status-value').textContent = level * 500;
     showMessage("Game dimulai! Selamat bermain!");
+    updateCollectTargetUI();
     if (isMusicPlaying) {
-        backgroundMusic.play(); // Mulai musik saat game dimulai
+        backgroundMusic.play();
     }
   }
 
-  // Ulangi level saat ini
   function retryLevel(){
+    if(gameModal.classList.contains('active')) { // If modal is open, close it first
+        gameModal.classList.remove('active');
+    }
     score = 0;
-    moves = maxMoves; // Reset gerakan ke maxMoves level saat ini
+    moves = maxMoves;
     selectedCell = null;
     isPaused = false;
     isAnimating = false;
-    targetCollect = {}; // Reset target collect
-    currentCollected = {}; // Reset current collected
+    targetCollect = {};
+    currentCollected = {};
+    shufflePowerUps = 1; // Reset power-ups
+    hammerPowerUps = 1;
+
+    // Re-define collection targets for this level
+    if (level % 2 === 0) {
+        const colorCount = level <= COLOR_SETS.length ? COLOR_SETS[level-1] : 6;
+        const targetColor = getRandomInt(0, colorCount - 1);
+        const targetAmount = 10 + Math.floor(level / 2) * 5;
+        targetCollect[targetColor] = targetAmount;
+    } else if (level % 3 === 0) {
+        const targetCollectibleType = getRandomInt(0, COLLECTIBLE_SHAPES.length - 1);
+        const targetAmount = 3 + Math.floor(level / 3) * 1;
+        targetCollect[targetCollectibleType] = targetAmount;
+    }
 
     initGrid();
     renderGrid();
@@ -1001,17 +1505,17 @@
     updateUIElements();
     targetScoreIndicator.querySelector('.status-value').textContent = level * 500;
     showMessage(`Level ${level} diulang! Semangat!`);
+    updateCollectTargetUI();
     if (isMusicPlaying) {
-        backgroundMusic.play(); // Lanjutkan musik saat level diulang
+        backgroundMusic.play();
     }
   }
 
-  // Fungsi untuk mengontrol musik
   function toggleMusic() {
     if (backgroundMusic.paused) {
       backgroundMusic.play().then(() => {
         isMusicPlaying = true;
-        musicIcon.textContent = 'music_note'; // Ikon musik menyala
+        musicIcon.textContent = 'music_note';
         localStorage.setItem('musicState', 'playing');
       }).catch(error => {
         console.error("Autoplay prevented:", error);
@@ -1022,12 +1526,214 @@
     } else {
       backgroundMusic.pause();
       isMusicPlaying = false;
-      musicIcon.textContent = 'music_off'; // Ikon musik mati
+      musicIcon.textContent = 'music_off';
       localStorage.setItem('musicState', 'paused');
     }
   }
 
-  // Navigasi keyboard untuk grid
+  function updateCollectTargetUI() {
+      collectTargetElement.innerHTML = '';
+      if (Object.keys(targetCollect).length > 0) {
+          collectTargetElement.style.display = 'flex';
+          for (const key in targetCollect) {
+              if (targetCollect.hasOwnProperty(key)) {
+                  const required = targetCollect[key];
+                  const collected = currentCollected[key] || 0;
+                  const itemDisplay = ITEM_SHAPES[key] || COLLECTIBLE_SHAPES[key]; // Determine if it's a normal item or collectible
+                  const itemDiv = document.createElement('div');
+                  itemDiv.classList.add('collect-item');
+                  itemDiv.innerHTML = `<span class="icon">${itemDisplay}</span> <span class="count">${collected}/${required}</span>`;
+                  collectTargetElement.appendChild(itemDiv);
+              }
+          }
+      } else {
+          collectTargetElement.style.display = 'none';
+      }
+  }
+
+  function updatePowerUpButtons() {
+      shuffleCountSpan.textContent = shufflePowerUps;
+      hammerCountSpan.textContent = hammerPowerUps;
+      shuffleBtn.disabled = shufflePowerUps <= 0 || isAnimating || isPaused;
+      hammerBtn.disabled = hammerPowerUps <= 0 || isAnimating || isPaused;
+  }
+
+  async function useShuffle() {
+      if (shufflePowerUps <= 0 || isAnimating || isPaused) return;
+      if (!confirm("Gunakan Acak? Ini akan mengocok ulang papan.")) return;
+
+      playSound(powerUpSound);
+      shufflePowerUps--;
+      updatePowerUpButtons();
+      isAnimating = true;
+      showMessage("Mengocok ulang papan...", false);
+
+      // Simple shuffle: re-initialize grid
+      initGrid();
+      renderGrid();
+      await delay(500); // Animation delay for shuffle
+      isAnimating = false;
+      checkLevelCompletion(); // Re-check for possible moves
+  }
+
+  async function useHammer(index) {
+      if (hammerPowerUps <= 0 || isAnimating || isPaused) return;
+      if (index === undefined) { // If called without an index, activate selection mode
+          showMessage("Pilih item untuk dihancurkan dengan palu.", false);
+          activePowerUp = 'hammer';
+          renderGrid(); // Highlight selected cell if any
+          return;
+      }
+
+      playSound(powerUpSound);
+      hammerPowerUps--;
+      updatePowerUpButtons();
+      isAnimating = true;
+      showMessage("Palu digunakan!", false);
+
+      const cell = detailedGrid[index];
+      const cellsToClear = new Set();
+      const cellsToHit = new Set();
+
+      if (cell.type === CELL_TYPES.NORMAL) {
+          cellsToClear.add(index);
+      } else if (cell.type === CELL_TYPES.ICE) {
+          cellsToHit.add(index);
+      } else if (cell.type === CELL_TYPES.COLLECTIBLE) {
+          cellsToClear.add(index);
+      }
+
+      // Apply damage to ice blocks
+      cellsToHit.forEach(i => {
+          if (detailedGrid[i].type === CELL_TYPES.ICE) {
+              detailedGrid[i].hits--;
+              playSound(blockHitSound);
+              if (detailedGrid[i].hits <= 0) {
+                  cellsToClear.add(i);
+              }
+          }
+      });
+
+      score += cellsToClear.size * 10; // Score for destroyed items
+      scoreIndicator.querySelector('.status-value').textContent = score;
+
+      cellsToClear.forEach(i => {
+          const cell = detailedGrid[i];
+          if (cell.type === CELL_TYPES.NORMAL) {
+              currentCollected[cell.color] = (currentCollected[cell.color] || 0) + 1;
+          } else if (cell.type === CELL_TYPES.COLLECTIBLE) {
+              currentCollected[cell.collectibleType] = (currentCollected[cell.collectibleType] || 0) + 1;
+          }
+          const domCell = gridElement.children[i];
+          if(domCell){
+              domCell.classList.add('removing');
+          }
+      });
+      updateCollectTargetUI();
+
+      await delay(400);
+      cellsToClear.forEach(i => {
+          detailedGrid[i] = { type: CELL_TYPES.NORMAL, color: -1, bonus: BONUS_TYPES.NONE, hits: 0 };
+      });
+      await dropCandies();
+      refillGrid();
+      renderGrid();
+      await delay(300);
+      isAnimating = false;
+      checkLevelCompletion();
+  }
+
+  // Modal functions
+  function showModal(title, message, buttonText) {
+      modalTitle.textContent = title;
+      modalMessage.textContent = message;
+      modalActionBtn.textContent = buttonText;
+      gameModal.classList.add('active');
+      modalActionBtn.onclick = () => {
+          gameModal.classList.remove('active');
+          if (buttonText === "Lanjut Level") {
+              startNextLevel();
+          } else if (buttonText === "Coba Lagi") {
+              retryLevel();
+          } else if (buttonText === "Mulai Ulang") {
+              startGame();
+          }
+      };
+  }
+
+  // Function to check for possible moves (considering all cell types)
+  function hasPossibleMoves() {
+      const tempGrid = detailedGrid.map(cell => ({ ...cell }));
+
+      const findMatchesInTempGrid = (grid) => {
+          const matches = new Set();
+          // Check horizontal
+          for (let r = 0; r < ROWS; r++) {
+              for (let c = 0; c < COLS - 2; c++) {
+                  if (grid[idx(r, c)].type === CELL_TYPES.NORMAL &&
+                      grid[idx(r, c + 1)].type === CELL_TYPES.NORMAL &&
+                      grid[idx(r, c + 2)].type === CELL_TYPES.NORMAL &&
+                      grid[idx(r, c)].color === grid[idx(r, c + 1)].color &&
+                      grid[idx(r, c + 1)].color === grid[idx(r, c + 2)].color) {
+                      matches.add(idx(r, c)); matches.add(idx(r, c + 1)); matches.add(idx(r, c + 2));
+                  }
+              }
+          }
+          // Check vertical
+          for (let c = 0; c < COLS; c++) {
+              for (let r = 0; r < ROWS - 2; r++) {
+                  if (grid[idx(r, c)].type === CELL_TYPES.NORMAL &&
+                      grid[idx(r + 1, c)].type === CELL_TYPES.NORMAL &&
+                      grid[idx(r + 2, c)].type === CELL_TYPES.NORMAL &&
+                      grid[idx(r, c)].color === grid[idx(r + 1, c)].color &&
+                      grid[idx(r + 1, c)].color === grid[idx(r + 2, c)].color) {
+                      matches.add(idx(r, c)); matches.add(idx(r + 1, c)); matches.add(idx(r + 2, c));
+                  }
+              }
+          }
+          return Array.from(matches);
+      };
+
+      for (let r = 0; r < ROWS; r++) {
+          for (let c = 0; c < COLS; c++) {
+              const currentIdx = idx(r, c);
+              if (tempGrid[currentIdx].type !== CELL_TYPES.NORMAL) continue; // Only normal items can be swapped
+
+              // Try swapping with right neighbor
+              if (c + 1 < COLS && tempGrid[idx(r, c + 1)].type === CELL_TYPES.NORMAL) {
+                  const rightIdx = idx(r, c + 1);
+                  [tempGrid[currentIdx], tempGrid[rightIdx]] = [tempGrid[rightIdx], tempGrid[currentIdx]];
+                  if (findMatchesInTempGrid(tempGrid).length > 0) {
+                      return true;
+                  }
+                  [tempGrid[currentIdx], tempGrid[rightIdx]] = [tempGrid[rightIdx], tempGrid[currentIdx]]; // Swap back
+              }
+
+              // Try swapping with bottom neighbor
+              if (r + 1 < ROWS && tempGrid[idx(r + 1, c)].type === CELL_TYPES.NORMAL) {
+                  const downIdx = idx(r + 1, c);
+                  [tempGrid[currentIdx], tempGrid[downIdx]] = [tempGrid[downIdx], tempGrid[currentIdx]];
+                  if (findMatchesInTempGrid(tempGrid).length > 0) {
+                      return true;
+                  }
+                  [tempGrid[currentIdx], tempGrid[downIdx]] = [tempGrid[downIdx], tempGrid[currentIdx]]; // Swap back
+              }
+          }
+      }
+      return false;
+  }
+
+
+  // Event listeners
+  startBtn.addEventListener('click', () => startGame());
+  pauseBtn.addEventListener('click', () => pauseGame());
+  retryBtn.addEventListener('click', () => {
+    if(confirm('Ulangi level ini? Skor dan target akan direset.')) retryLevel();
+  });
+  musicControlBtn.addEventListener('click', toggleMusic);
+  shuffleBtn.addEventListener('click', useShuffle);
+  hammerBtn.addEventListener('click', () => useHammer()); // Activate hammer selection mode
+
   gridElement.addEventListener('keydown', e => {
     if(isAnimating || isPaused) return;
     const focus = document.activeElement;
@@ -1048,34 +1754,26 @@
     }
   });
 
-  // Event listener untuk tombol
-  startBtn.addEventListener('click', () => startGame());
-  pauseBtn.addEventListener('click', () => pauseGame());
-  retryBtn.addEventListener('click', () => {
-    if(confirm('Ulangi level ini? Skor dan target akan direset.')) retryLevel();
-  });
-  musicControlBtn.addEventListener('click', toggleMusic); // Event listener untuk tombol musik
-
-  // Inisialisasi awal saat halaman dimuat
+  // Initial setup
   updateButtons(false);
-  movesIndicator.querySelector('.status-label').textContent = 'GERAKAN'; // Ubah label dari WAKTU ke GERAKAN
+  movesIndicator.querySelector('.status-label').textContent = 'GERAKAN';
 
-  // Cek level tertinggi yang disimpan
   const savedMaxLevel = localStorage.getItem('fruitCrushMaxLevel');
   if (savedMaxLevel) {
       level = parseInt(savedMaxLevel);
-      maxMoves = BASE_MOVES + (level * 3); // Sesuaikan maxMoves untuk level yang dimuat
-      if(level % 5 === 0) maxMoves += 10; // Tambahkan bonus jika level adalah kelipatan 5
-      moves = maxMoves; // Set gerakan awal ke maxMoves
+      maxMoves = BASE_MOVES + (level * 3);
+      if(level % 5 === 0) maxMoves += 10;
+      moves = maxMoves;
       targetScoreIndicator.querySelector('.status-value').textContent = level * 500;
       showMessage(`Lanjutkan dari Level ${level}! Tekan Mulai.`, false);
   } else {
       targetScoreIndicator.querySelector('.status-value').textContent = level * 500;
       showMessage("Tekan Mulai untuk bermain FRUIT CRUSH!");
   }
-  updateUIElements(); // Perbarui UI dengan nilai awal
+  updateUIElements();
+  updateCollectTargetUI();
+  updatePowerUpButtons();
 
-  // Cek status musik dari localStorage saat memuat
   const savedMusicState = localStorage.getItem('musicState');
   if (savedMusicState === 'playing') {
     backgroundMusic.play().then(() => {
